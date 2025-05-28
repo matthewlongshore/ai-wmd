@@ -6,7 +6,7 @@
     <title>Interactive Policy Brief: LLMs & WMD Safety</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Application Structure Plan: The SPA is now structured with a collapsible left sidebar for navigation and a main content area. This allows for persistent navigation access while maximizing screen space for content. The flow remains thematic:
+    <!-- Application Structure Plan: The SPA maintains a collapsible left sidebar for navigation and a main content area. The layout has been refined using Tailwind's flexbox to ensure proper spacing and responsiveness. The flow remains thematic:
         1. Introduction: What are LLMs and why this is important.
         2. Understanding the Risks: Interactive cards detailing how LLMs could aid in developing different WMD types (Biological, Chemical, Nuclear, Delivery).
         3. How LLMs Could Be Misused: Tabbed interface showing mechanisms of misuse (Information Access, Design Aid, Acquisition Help, Spreading Know-how).
@@ -14,8 +14,8 @@
         5. Policy & Cooperation: Highlighting the need for rules and teamwork.
         6. Illustrative Impact Chart: A simple bar chart showing the potential of safety measures.
         7. Key Takeaways & Call to Action: Summarizing the core message for policymakers.
-        8. References: A new section providing example sources with brief TLDR summaries.
-        This structure was chosen to improve navigation accessibility and allow for more content expansion (like references) without cluttering the main view. The collapsible sidebar provides flexibility for users to prioritize content viewing space. For mobile, the sidebar acts as an overlay menu.
+        8. References: A section providing example sources with external links.
+        This structure improves navigation accessibility and content presentation. The refined layout uses flexbox to manage the sidebar and main content, preventing unwanted shifting and ensuring the main content always occupies the available space correctly.
     -->
     <!-- Visualization & Content Choices:
         - Report Info: What LLMs are. Goal: Inform. Viz/Method: Simple text. Interaction: None. Justification: Foundational knowledge.
@@ -26,7 +26,7 @@
         - Report Info: Policy/Cooperation needs. Goal: Inform on broader actions. Viz/Method: Text sections. Interaction: None. Justification: Essential policy context.
         - Report Info: Potential impact of safety measures. Goal: Illustrate effectiveness. Viz/Method: Bar Chart (Chart.js). Interaction: Static chart, dynamic rendering. Justification: Provides a visual summary of solution efficacy (illustrative).
         - Report Info: Key takeaways for policymakers. Goal: Summarize and Call to Action. Viz/Method: Bulleted list, concluding statement. Interaction: None. Justification: Reinforces main messages.
-        - Report Info: References. Goal: Provide context and further reading. Viz/Method: Text list with TLDRs. Interaction: None. Justification: Adds credibility and depth.
+        - Report Info: References. Goal: Provide context and further reading. Viz/Method: Text list with external links. Interaction: Click links. Justification: Adds credibility and allows deeper exploration.
         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
     -->
     <style>
@@ -34,6 +34,7 @@
         .sidebar {
             width: 16rem; /* default w-64 */
             transition: width 0.3s ease-in-out;
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
         }
         .sidebar.collapsed {
             width: 4rem; /* w-16 */
@@ -41,12 +42,14 @@
         .sidebar-item-text {
             display: block;
             opacity: 1;
-            transition: opacity 0.3s ease-in-out;
+            transition: opacity 0.3s ease-in-out, width 0.3s ease-in-out;
+            white-space: nowrap; /* Prevent text wrapping */
+            overflow: hidden; /* Hide overflow when width is 0 */
+            width: auto; /* Default width */
         }
         .sidebar.collapsed .sidebar-item-text {
             opacity: 0;
             width: 0;
-            overflow: hidden;
         }
         .sidebar-toggle-button {
             transition: transform 0.3s ease-in-out;
@@ -144,14 +147,11 @@
                 height: 100%;
                 z-index: 50;
                 transform: translateX(-100%);
-                background-color: white; /* Ensure sidebar has a background on mobile */
+                background-color: white;
                 box-shadow: 2px 0 5px rgba(0,0,0,0.2);
             }
             .sidebar.open {
                 transform: translateX(0);
-            }
-            .main-content-area {
-                margin-left: 0;
             }
             .sidebar-toggle-button-mobile {
                 display: block;
@@ -175,7 +175,7 @@
         </svg>
     </button>
 
-    <aside id="sidebar" class="sidebar bg-white shadow-md flex flex-col p-4 md:relative md:flex-shrink-0">
+    <aside id="sidebar" class="sidebar bg-white shadow-md flex flex-col p-4 md:relative">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-xl sm:text-2xl font-bold accent-color sidebar-item-text">AI & WMDs</h1>
             <button id="sidebar-toggle" class="hidden md:block text-gray-700 hover:text-blue-600 focus:outline-none p-1 rounded-full sidebar-toggle-button">
@@ -416,28 +416,28 @@
 
         <section id="references" class="content-section">
             <h2 class="text-2xl sm:text-3xl font-semibold mb-4">References & Further Reading</h2>
-            <p class="mb-6 text-lg">To learn more about the topics discussed in this brief, here are some illustrative references. Each includes a "TLDR" (Too Long; Didn't Read) summary for quick understanding.</p>
+            <p class="mb-6 text-lg">To learn more about the topics discussed in this brief, here are some illustrative references. Click on the titles to visit the (example) sources.</p>
             <div class="space-y-6">
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-xl font-medium mb-2 accent-color">1. The Malicious Use of Artificial Intelligence: Forecasting, Prevention, and Mitigation</h3>
+                    <h3 class="text-xl font-medium mb-2 accent-color">
+                        <a href="https://example.com/malicious-ai" target="_blank" rel="noopener noreferrer" class="hover:underline">The Malicious Use of Artificial Intelligence: Forecasting, Prevention, and Mitigation</a>
+                    </h3>
                     <p class="text-sm text-gray-600 mb-2"><em>Future of Humanity Institute, University of Oxford; Center for the Study of Existential Risk, University of Cambridge; 80,000 Hours; OpenAI; Google Brain; etc. (2018)</em></p>
                     <p class="text-gray-700">This report explores how AI could be misused in three areas: digital security, physical security, and political disruption. It highlights the need for governments and researchers to work together to prevent these harms.</p>
-                    <p class="mt-2 font-semibold">TLDR:</p>
-                    <p class="text-sm text-gray-600">AI could be used for bad things like hacking, making dangerous weapons, or messing with elections. We need to plan now to stop this from happening.</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-xl font-medium mb-2 accent-color">2. Governing AI: A Roadmap for the Future</h3>
+                    <h3 class="text-xl font-medium mb-2 accent-color">
+                        <a href="https://example.com/governing-ai" target="_blank" rel="noopener noreferrer" class="hover:underline">Governing AI: A Roadmap for the Future</a>
+                    </h3>
                     <p class="text-sm text-gray-600 mb-2"><em>Center for a New American Security (CNAS) (2020)</em></p>
                     <p class="text-gray-700">This paper discusses the challenges of governing AI, including its rapid development and global nature. It proposes a framework for policymakers to address national security, economic, and ethical implications of AI.</p>
-                    <p class="mt-2 font-semibold">TLDR:</p>
-                    <p class="text-sm text-gray-600">AI is changing fast, so governments need a plan to manage it. This includes making rules for safety, thinking about jobs, and making sure AI is fair.</p>
                 </div>
                 <div class="bg-white p-6 rounded-lg shadow">
-                    <h3 class="text-xl font-medium mb-2 accent-color">3. Dual-Use Dilemmas in AI: A Framework for Responsible Development</h3>
+                    <h3 class="text-xl font-medium mb-2 accent-color">
+                        <a href="https://example.com/dual-use-ai" target="_blank" rel="noopener noreferrer" class="hover:underline">Dual-Use Dilemmas in AI: A Framework for Responsible Development</a>
+                    </h3>
                     <p class="text-sm text-gray-600 mb-2"><em>OpenAI (2023)</em></p>
                     <p class="text-gray-700">This article from a leading AI company discusses the "dual-use" nature of AI, meaning it can be used for both good and bad purposes. It outlines strategies for developers to build AI responsibly, considering potential misuse from the start.</p>
-                    <p class="mt-2 font-semibold">TLDR:</p>
-                    <p class="text-sm text-gray-600">AI can be used for good or bad. Companies building AI need to think about how it could be misused and build in safety features from the very beginning.</p>
                 </div>
             </div>
         </section>
@@ -451,7 +451,6 @@
             const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
             const navButtons = document.querySelectorAll('.nav-button');
             const contentSections = document.querySelectorAll('.content-section');
-            const mainContentArea = document.getElementById('main-content-area');
 
             let isSidebarCollapsed = false;
 
@@ -459,16 +458,13 @@
                 if (window.innerWidth >= 768) { // Desktop view
                     if (isSidebarCollapsed) {
                         sidebar.classList.add('collapsed');
-                        mainContentArea.style.marginLeft = '4rem'; // Adjust for collapsed sidebar width
                     } else {
                         sidebar.classList.remove('collapsed');
-                        mainContentArea.style.marginLeft = '16rem'; // Adjust for open sidebar width
                     }
-                    sidebar.classList.remove('open', 'fixed', 'transform'); // Remove mobile styles
-                    sidebar.style.transform = ''; // Clear transform
+                    sidebar.classList.remove('open'); // Ensure mobile 'open' class is removed
+                    sidebar.style.transform = ''; // Clear mobile transform
                 } else { // Mobile view
                     sidebar.classList.remove('collapsed'); // Sidebar always 'open' when shown on mobile
-                    mainContentArea.style.marginLeft = '0';
                     if (sidebar.classList.contains('open')) {
                          sidebar.style.transform = 'translateX(0)';
                     } else {
@@ -506,7 +502,7 @@
                 });
                 if (window.innerWidth < 768) {
                     sidebar.classList.remove('open'); // Close sidebar after selection on mobile
-                    updateLayout();
+                    updateLayout(); // Re-apply transform to hide it
                 }
                 window.scrollTo(0, 0); // Scroll to top when section changes
             }
