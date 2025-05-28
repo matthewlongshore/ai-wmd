@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Policy Brief: LLMs & WMD Safety</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Application Structure Plan: The SPA is structured thematically to guide policymakers from understanding LLMs and their risks in WMD proliferation to exploring actionable safety measures and policy considerations. The flow is:
+        1. Introduction: What are LLMs and why this is important.
+        2. Understanding the Risks: Interactive cards detailing how LLMs could aid in developing different WMD types (Biological, Chemical, Nuclear, Delivery).
+        3. How LLMs Could Be Misused: Tabbed interface showing mechanisms of misuse (Information Access, Design Aid, Acquisition Help, Spreading Know-how).
+        4. Technical Safety Measures: Interactive section detailing key technical safeguards (e.g., Responsible Training, Red Teaming, Access Controls).
+        5. Policy & Cooperation: Highlighting the need for rules and teamwork.
+        6. Illustrative Impact Chart: A simple bar chart showing the potential of safety measures.
+        7. Key Takeaways & Call to Action: Summarizing the core message for policymakers.
+        This structure was chosen to build understanding progressively, from the problem to solutions, making complex information digestible and actionable for a non-technical audience. Interactions (clickable cards, tabs) are used to manage information density and encourage exploration.
+    -->
+    <!-- Visualization & Content Choices:
+        - Report Info: What LLMs are. Goal: Inform. Viz/Method: Simple text. Interaction: None. Justification: Foundational knowledge.
+        - Report Info: General WMD risk. Goal: Alert. Viz/Method: Emphasized text. Interaction: None. Justification: Set context.
+        - Report Info: Risks for specific WMD types (Bio, Chem, Nuke, Delivery). Goal: Detail specific threats. Viz/Method: Interactive cards (HTML/Tailwind). Interaction: Click to reveal details. Justification: Breaks down complex risks into manageable, explorable pieces.
+        - Report Info: Mechanisms of LLM misuse (Info access, Design, Acquisition, Spread). Goal: Explain 'how'. Viz/Method: Tabbed content area (HTML/Tailwind/JS). Interaction: Click tabs to switch content. Justification: Organizes misuse vectors clearly.
+        - Report Info: Technical safety measures (Training, Filters, Red Teaming, Access Control, Watermarking). Goal: Present solutions. Viz/Method: Interactive accordion/cards (HTML/Tailwind/JS). Interaction: Click to expand/reveal details. Justification: Allows focused exploration of each measure.
+        - Report Info: Policy/Cooperation needs. Goal: Inform on broader actions. Viz/Method: Text sections. Interaction: None. Justification: Essential policy context.
+        - Report Info: Potential impact of safety measures. Goal: Illustrate effectiveness. Viz/Method: Bar Chart (Chart.js). Interaction: Static chart, dynamic rendering. Justification: Provides a visual summary of solution efficacy (illustrative).
+        - Report Info: Key takeaways for policymakers. Goal: Summarize and Call to Action. Viz/Method: Bulleted list, concluding statement. Interaction: None. Justification: Reinforces main messages.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .nav-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.3s, color 0.3s;
+            cursor: pointer;
+        }
+        .nav-button.active, .nav-button:hover {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+        }
+        .content-section {
+            display: none;
+            padding-top: 1.5rem; /* 24px */
+            padding-bottom: 1.5rem; /* 24px */
+        }
+        .content-section.active {
+            display: block;
+        }
+        .interactive-card {
+            background-color: #f3f4f6; /* gray-100 */
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.5rem; /* 8px */
+            padding: 1rem; /* 16px */
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .interactive-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .interactive-card .details {
+            display: none;
+            margin-top: 0.75rem; /* 12px */
+            font-size: 0.875rem; /* 14px */
+            color: #4b5563; /* gray-600 */
+        }
+        .tab-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem 0.375rem 0 0;
+            background-color: #e5e7eb; /* gray-200 */
+            color: #374151; /* gray-700 */
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tab-button.active {
+            background-color: #bfdbfe; /* blue-200 */
+            color: #1e40af; /* blue-800 */
+            font-weight: 600;
+        }
+        .tab-content {
+            display: none;
+            padding: 1rem;
+            border: 1px solid #bfdbfe; /* blue-200 */
+            border-top: none;
+            border-radius: 0 0 0.375rem 0.375rem;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        h1, h2, h3 { color: #1f2937; } /* gray-800 */
+        p { color: #374151; line-height: 1.6; } /* gray-700 */
+        .bg-warm-neutral { background-color: #fdfcfb; } /* A very light off-white/beige */
+        .accent-color { color: #2563eb; } /* blue-600 */
+        .bg-accent-light { background-color: #eff6ff; } /* blue-50 */
+    </style>
+</head>
+<body class="bg-warm-neutral text-gray-800 antialiased">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl sm:text-2xl font-bold accent-color">AI & WMDs: A Policy Guide</h1>
+                </div>
+                <nav class="hidden md:flex space-x-2">
+                    <button class="nav-button active" data-target="intro">Introduction</button>
+                    <button class="nav-button" data-target="risks">The Risks</button>
+                    <button class="nav-button" data-target="misuse">How AI Could Be Misused</button>
+                    <button class="nav-button" data-target="safety">Safety Measures</button>
+                    <button class="nav-button" data-target="policy">Policy & Cooperation</button>
+                    <button class="nav-button" data-target="impact">Impact of Measures</button>
+                    <button class="nav-button" data-target="takeaways">Key Takeaways</button>
+                </nav>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden bg-white shadow-lg">
+            <a href="#" class="block py-2 px-4 text-sm hover:bg-blue-50 nav-button-mobile" data-target="intro">Introduction</a>
+            <a href="#" class="block py-2 px-4 text-sm hover:bg-blue-50 nav-button-mobile" data-target="risks">The Risks</a>
+            <a href="#" class="block py-2 px-4 text-sm hover:bg-blue-50 nav-button-mobile" data-target="misuse">How AI Could Be Misused</a>
+            <a href="#" class="block py-2 px-4 text-sm hover:bg-blue-50 nav-button-mobile" data-target="safety">Safety Measures</a>
+            <a href="#" class="block py-2 px-4 text-sm hover:bg-blue-50 nav-button-mobile" data-target="policy">Policy & Cooperation</a>
+            <a href="#" class="block py-2 px-4 text-sm hover:bg-blue-50 nav-button-mobile" data-target="impact">Impact of Measures</a>
+            <a href="#" class="block py-2 px-4 text-sm hover:bg-blue-50 nav-button-mobile" data-target="takeaways">Key Takeaways</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <section id="intro" class="content-section active">
+            <h2 class="text-2xl sm:text-3xl font-semibold mb-4">Welcome, Policymakers!</h2>
+            <div class="bg-accent-light p-6 rounded-lg shadow">
+                <p class="mb-4 text-lg">This interactive guide helps you understand Large Language Models (LLMs) – a type of Artificial Intelligence (AI) – and how they relate to "Weapons of Mass Destruction" (WMDs). These are very dangerous weapons like nuclear, chemical, or biological weapons.</p>
+                <p class="mb-4"><strong>What are LLMs?</strong> Imagine a very smart computer program that can understand and write text like a human. That's an LLM! They learn from huge amounts of information from the internet and books. They can write emails, translate languages, and even help with homework.</p>
+                <p><strong>Why is this important for WMDs?</strong> While LLMs can do many good things, there's a worry they could also be misused to help create or use WMDs. This could make it easier for bad actors to get information or design parts for these terrible weapons. Our goal is to understand these risks and find ways to keep everyone safe.</p>
+                 <p class="mt-4">This application is designed to walk you through the key aspects of this complex issue. You'll learn about the specific risks, how LLMs might be misused, and what technical and policy measures can help us prevent harm. Please use the navigation above to explore each section.</p>
+            </div>
+        </section>
+
+        <section id="risks" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-semibold mb-4">Understanding the Risks: LLMs and WMDs</h2>
+            <p class="mb-6 text-lg">LLMs are powerful tools, but this power could potentially be misused in the wrong hands. This section explores how LLMs might make it easier to develop different types of WMDs. Click on each card to learn more about specific concerns.</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="interactive-card" data-id="bio">
+                    <h3 class="text-xl font-medium accent-color">🦠 Biological Weapons</h3>
+                    <p class="text-sm text-gray-500">Germs, viruses, or toxins used to harm people, animals, or plants.</p>
+                    <div class="details">
+                        <p><strong>How LLMs could be a risk:</strong></p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Helping find or synthesize information on creating dangerous germs or toxins.</li>
+                            <li>Assisting in designing experiments to make germs more harmful.</li>
+                            <li>Explaining how to spread biological agents effectively.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="interactive-card" data-id="chem">
+                    <h3 class="text-xl font-medium accent-color">🧪 Chemical Weapons</h3>
+                    <p class="text-sm text-gray-500">Poisonous chemicals used to injure or kill.</p>
+                    <div class="details">
+                        <p><strong>How LLMs could be a risk:</strong></p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Providing instructions for making dangerous chemicals or their precursors.</li>
+                            <li>Helping to identify new, harmful chemical compounds.</li>
+                            <li>Suggesting ways to deliver chemical agents.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="interactive-card" data-id="nuke">
+                    <h3 class="text-xl font-medium accent-color">☢️ Nuclear Weapons</h3>
+                    <p class="text-sm text-gray-500">Extremely powerful bombs that use nuclear reactions.</p>
+                    <div class="details">
+                        <p><strong>How LLMs could be a risk:</strong></p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Making it easier to find sensitive information about nuclear weapon design, though much is already heavily guarded.</li>
+                            <li>Helping simulate parts of the nuclear fuel cycle or weapon components.</li>
+                            <li>Assisting in identifying materials needed for nuclear weapons (though obtaining them is extremely hard).</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="interactive-card" data-id="delivery">
+                    <h3 class="text-xl font-medium accent-color">🚀 Delivery Systems</h3>
+                    <p class="text-sm text-gray-500">Ways to carry and use WMDs (e.g., missiles, drones).</p>
+                    <div class="details">
+                        <p><strong>How LLMs could be a risk:</strong></p>
+                        <ul class="list-disc list-inside ml-4">
+                            <li>Helping design or improve parts for missiles or drones.</li>
+                            <li>Assisting with programming autonomous delivery systems.</li>
+                            <li>Generating ideas for unconventional ways to deliver WMDs.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="misuse" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-semibold mb-4">How Could AI Be Misused in WMD Development?</h2>
+            <p class="mb-6 text-lg">LLMs could potentially assist in various stages of WMD development if not properly controlled. This section outlines some of these potential misuse pathways. Click on the tabs to explore different ways AI might lower the barriers to WMD creation.</p>
+            <div class="flex border-b border-gray-300 mb-4">
+                <button class="tab-button active" data-tab="info">Finding Instructions</button>
+                <button class="tab-button" data-tab="design">Designing Parts</button>
+                <button class="tab-button" data-tab="acquire">Getting Materials</button>
+                <button class="tab-button" data-tab="spread">Spreading Know-How</button>
+            </div>
+            <div id="info" class="tab-content active">
+                <h3 class="text-xl font-medium mb-2 accent-color">Finding Instructions & Information</h3>
+                <p>LLMs are very good at searching and summarizing vast amounts of text. They could potentially:</p>
+                <ul class="list-disc list-inside mt-2 ml-4">
+                    <li>Quickly find and explain complex scientific papers or technical documents related to WMDs that are publicly available but hard to understand.</li>
+                    <li>Collate information from many sources to piece together a more complete picture of a process.</li>
+                    <li>Translate sensitive documents if they were ever leaked into different languages.</li>
+                </ul>
+                <p class="mt-2"><strong>The Concern:</strong> This could speed up research for those with bad intentions, making it easier to learn how to make dangerous things.</p>
+            </div>
+            <div id="design" class="tab-content">
+                <h3 class="text-xl font-medium mb-2 accent-color">Designing Parts & Components</h3>
+                <p>LLMs can help with creative tasks and problem-solving. This capability could be misused to:</p>
+                <ul class="list-disc list-inside mt-2 ml-4">
+                    <li>Generate ideas for new or modified weapon components.</li>
+                    <li>Help optimize designs for certain WMD parts, making them more efficient or easier to build.</li>
+                    <li>Assist in writing code for software that might be used in WMD systems (e.g., for simulations or guidance).</li>
+                </ul>
+                <p class="mt-2"><strong>The Concern:</strong> This could lower the technical skill needed to design sophisticated weapons or improve existing designs.</p>
+            </div>
+             <div id="acquire" class="tab-content">
+                <h3 class="text-xl font-medium mb-2 accent-color">Getting Materials & Equipment</h3>
+                <p>While LLMs can't directly get materials, they could assist in identifying them:</p>
+                <ul class="list-disc list-inside mt-2 ml-4">
+                    <li>Help find suppliers of dual-use materials (items that have both peaceful and harmful uses).</li>
+                    <li>Suggest alternative materials or processes if certain items are hard to get.</li>
+                    <li>Generate lists of equipment needed for specific processes.</li>
+                </ul>
+                <p class="mt-2"><strong>The Concern:</strong> This could make the process of acquiring necessary components for WMDs slightly easier, although physical acquisition remains a major hurdle.</p>
+            </div>
+            <div id="spread" class="tab-content">
+                <h3 class="text-xl font-medium mb-2 accent-color">Spreading Know-How & Disinformation</h3>
+                <p>LLMs can generate convincing text quickly. This could be used to:</p>
+                <ul class="list-disc list-inside mt-2 ml-4">
+                    <li>Create and spread instructions or propaganda related to WMDs in a way that seems legitimate.</li>
+                    <li>Automate the creation of technical-sounding documents that might mislead or confuse.</li>
+                    <li>Facilitate communication and planning for groups interested in WMDs by translating languages or drafting messages.</li>
+                </ul>
+                <p class="mt-2"><strong>The Concern:</strong> This could make it easier for harmful knowledge to spread or for malicious actors to organize.</p>
+            </div>
+        </section>
+
+        <section id="safety" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-semibold mb-4">Technical Safety Measures: Making AI Safer</h2>
+            <p class="mb-6 text-lg">Scientists and companies are working on ways to build safety directly into LLMs. These "technical safeguards" are like safety features in a car. This section details some of the key technical approaches to prevent misuse. Click each measure to learn more.</p>
+             <div class="space-y-4">
+                <details class="group bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow">
+                    <summary class="font-semibold text-lg cursor-pointer text-blue-600 group-hover:text-blue-700">1. Responsible Model Training & Fine-Tuning</summary>
+                    <p class="mt-2 text-gray-700">This means carefully teaching the AI what is good and bad. AI models are "trained" on lots of data. We can specifically train them to refuse to answer questions about making weapons or harmful things. It's like teaching a child not to play with matches.</p>
+                </details>
+                <details class="group bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow">
+                    <summary class="font-semibold text-lg cursor-pointer text-blue-600 group-hover:text-blue-700">2. Input and Output Filters</summary>
+                    <p class="mt-2 text-gray-700">These are like security guards for the AI. "Input filters" check the questions people ask the AI. If a question is about something dangerous, the filter can block it. "Output filters" check the AI's answers. If the AI accidentally says something harmful, the filter can stop it from being shown.</p>
+                </details>
+                 <details class="group bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow">
+                    <summary class="font-semibold text-lg cursor-pointer text-blue-600 group-hover:text-blue-700">3. Red Teaming & Testing</summary>
+                    <p class="mt-2 text-gray-700">"Red teaming" is when experts try to trick the AI into saying or doing bad things. It's like testing a new car by trying to crash it in a safe place. This helps find weaknesses so they can be fixed before the AI is used by everyone.</p>
+                </details>
+                 <details class="group bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow">
+                    <summary class="font-semibold text-lg cursor-pointer text-blue-600 group-hover:text-blue-700">4. Access Controls & Monitoring</summary>
+                    <p class="mt-2 text-gray-700">This means deciding who gets to use the most powerful AI models. For very advanced AIs, access might be limited to trusted researchers. It also means watching how the AI is being used to spot any suspicious activity quickly.</p>
+                </details>
+                <details class="group bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow">
+                    <summary class="font-semibold text-lg cursor-pointer text-blue-600 group-hover:text-blue-700">5. Watermarking and Provenance</summary>
+                    <p class="mt-2 text-gray-700">"Watermarking" means adding a secret signal to things the AI creates (like text or images). This helps tell if something was made by an AI, which can be useful for tracking where information comes from. "Provenance" is about keeping a record of how the AI was built and trained.</p>
+                </details>
+                 <details class="group bg-white p-4 rounded-lg shadow hover:shadow-lg transition-shadow">
+                    <summary class="font-semibold text-lg cursor-pointer text-blue-600 group-hover:text-blue-700">6. Developing AI to Detect Misuse</summary>
+                    <p class="mt-2 text-gray-700">We can also build specialized AI systems that are designed to look for signs of WMD-related activity online or in scientific publications. These AI "detectives" could help identify emerging threats or unusual patterns that humans might miss.</p>
+                </details>
+            </div>
+        </section>
+
+        <section id="policy" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-semibold mb-4">Policy & Cooperation: Working Together for Safety</h2>
+            <p class="mb-6 text-lg">Technical safety measures are important, but they are not enough on their own. We also need good rules, teamwork, and smart policies to make sure AI is used safely and responsibly. This section outlines crucial areas for policy action and international collaboration.</p>
+            <div class="space-y-6">
+                <div class="bg-accent-light p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-medium mb-2 accent-color">📜 Clear Rules and Guidelines (Regulation & Standards)</h3>
+                    <p>Governments and international bodies need to create clear rules about how powerful LLMs can be developed and used, especially concerning sensitive information like WMDs. This includes setting safety standards that AI companies must meet.</p>
+                </div>
+                <div class="bg-accent-light p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-medium mb-2 accent-color">🤝 Teamwork and Information Sharing (Collaboration)</h3>
+                    <p>Governments, AI companies, scientists, and safety experts need to work together. Sharing information about new risks and effective safety measures is crucial. International cooperation is especially important because AI and information cross borders easily.</p>
+                </div>
+                <div class="bg-accent-light p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-medium mb-2 accent-color">📚 Education and Awareness</h3>
+                    <p>Policymakers, businesses, and the public need to understand both the benefits and risks of AI. Education programs can help people make informed decisions and support efforts to keep AI safe.</p>
+                </div>
+                 <div class="bg-accent-light p-6 rounded-lg shadow">
+                    <h3 class="text-xl font-medium mb-2 accent-color">🔍 Monitoring and Adapting</h3>
+                    <p>AI technology changes very fast. We need ways to continuously monitor how LLMs are evolving and how they are being used. Policies and safety measures will need to be updated as new challenges arise.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="impact" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-semibold mb-4">Illustrative Impact of Safety Measures</h2>
+            <p class="mb-6 text-lg">Implementing a combination of technical and policy safety measures can significantly reduce the risks associated with LLMs and WMDs. The chart below provides a simple illustration of how different types of safety efforts might contribute to overall risk reduction. Note: These percentages are for illustration purposes only and do not represent precise data.</p>
+            <div class="bg-white p-4 sm:p-6 rounded-lg shadow-lg">
+                <div class="chart-container">
+                    <canvas id="safetyImpactChart"></canvas>
+                </div>
+                <p class="text-sm text-center mt-4 text-gray-600">This chart shows that a layered approach, combining strong technical safeguards with robust policy and international cooperation, offers the best chance to mitigate risks.</p>
+            </div>
+        </section>
+
+        <section id="takeaways" class="content-section">
+            <h2 class="text-2xl sm:text-3xl font-semibold mb-4">Key Takeaways for Policymakers</h2>
+            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-6 rounded-md shadow-md">
+                <p class="font-bold text-xl mb-3">Your actions are crucial for a safe AI future!</p>
+                <ul class="list-disc list-inside space-y-2">
+                    <li><strong>LLMs are powerful tools with dual-use potential:</strong> They offer great benefits but also pose risks if misused, especially regarding WMDs.</li>
+                    <li><strong>Proactive safety is essential:</strong> We can't wait for something bad to happen. Technical safeguards and smart policies must be developed and implemented now.</li>
+                    <li><strong>Technical measures are advancing:</strong> Efforts like responsible training, filtering, and red teaming can significantly reduce risks from AI models themselves.</li>
+                    <li><strong>Policy and collaboration are key:</strong> Strong governance, international cooperation, and clear regulations are needed to support technical safety and address broader societal impacts.</li>
+                    <li><strong>A multi-layered approach works best:</strong> Combining technical safety, strong policies, international teamwork, and public awareness offers the strongest defense.</li>
+                    <li><strong>Stay informed and engaged:</strong> The field of AI is evolving rapidly. Continuous learning and active participation in shaping AI governance are vital.</li>
+                </ul>
+                <p class="mt-6 font-semibold text-lg">Let's work together to ensure AI helps humanity and doesn't become a threat to our safety and security.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white text-center p-6 mt-12">
+        <p>&copy; 2025 Policy Briefing Initiative. For educational purposes.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navButtons = document.querySelectorAll('.nav-button');
+            const mobileNavButtons = document.querySelectorAll('.nav-button-mobile');
+            const contentSections = document.querySelectorAll('.content-section');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            function setActiveSection(targetId) {
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === targetId) {
+                        section.classList.add('active');
+                    }
+                });
+
+                navButtons.forEach(button => {
+                    button.classList.remove('active');
+                    if (button.dataset.target === targetId) {
+                        button.classList.add('active');
+                    }
+                });
+                 mobileNavButtons.forEach(button => {
+                    button.classList.remove('bg-blue-100', 'font-semibold'); // Example active styles for mobile
+                    if (button.dataset.target === targetId) {
+                        button.classList.add('bg-blue-100', 'font-semibold');
+                    }
+                });
+                window.scrollTo(0, 0); // Scroll to top when section changes
+            }
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    setActiveSection(button.dataset.target);
+                });
+            });
+
+            mobileNavButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    setActiveSection(button.dataset.target);
+                    mobileMenu.classList.add('hidden'); // Hide menu after selection
+                });
+            });
+            
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+
+            const interactiveCards = document.querySelectorAll('.interactive-card');
+            interactiveCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const details = card.querySelector('.details');
+                    if (details) {
+                        details.style.display = details.style.display === 'none' || details.style.display === '' ? 'block' : 'none';
+                    }
+                });
+            });
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.dataset.tab;
+
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === targetTab) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            const safetyImpactCtx = document.getElementById('safetyImpactChart').getContext('2d');
+            if (safetyImpactCtx) {
+                new Chart(safetyImpactCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Stronger AI Training', 'Better Monitoring & Filters', 'International Rules & Cooperation', 'Red Teaming & Testing'],
+                        datasets: [{
+                            label: 'Illustrative Risk Reduction Contribution (%)',
+                            data: [30, 25, 25, 20],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.7)', // blue-500
+                                'rgba(16, 185, 129, 0.7)', // emerald-500
+                                'rgba(239, 68, 68, 0.7)',  // red-500
+                                'rgba(245, 158, 11, 0.7)'  // amber-500
+                            ],
+                            borderColor: [
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(16, 185, 129, 1)',
+                                'rgba(239, 68, 68, 1)',
+                                'rgba(245, 158, 11, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 40, // Adjusted max for better visual representation of data
+                                title: {
+                                    display: true,
+                                    text: 'Contribution to Risk Reduction (Illustrative %)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Safety Measure Categories'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.raw + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
